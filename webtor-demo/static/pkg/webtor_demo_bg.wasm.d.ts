@@ -1,7 +1,10 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
+export const __wbg_benchmarkresult_free: (a: number, b: number) => void;
 export const __wbg_demoapp_free: (a: number, b: number) => void;
+export const benchmarkresult_circuit_creation_ms: (a: number) => number;
+export const benchmarkresult_fetch_latency_ms: (a: number) => number;
 export const demoapp_close: (a: number) => any;
 export const demoapp_get: (a: number, b: number, c: number) => any;
 export const demoapp_getCircuitRelays: (a: number) => any;
@@ -12,6 +15,8 @@ export const demoapp_openWebRtc: (a: number) => any;
 export const demoapp_setStatusCallback: (a: number, b: any) => void;
 export const demoapp_triggerCircuitUpdate: (a: number) => any;
 export const main: () => void;
+export const runQuickBenchmark: (a: number, b: number) => any;
+export const runTorBenchmark: (a: number, b: number) => any;
 export const __wbg_jscircuitstatus_free: (a: number, b: number) => void;
 export const __wbg_jshttpresponse_free: (a: number, b: number) => void;
 export const __wbg_torclient_free: (a: number, b: number) => void;
@@ -57,10 +62,10 @@ export const torclientoptions_withCircuitUpdateInterval: (a: number, b: number) 
 export const torclientoptions_withConnectionTimeout: (a: number, b: number) => number;
 export const torclientoptions_withCreateCircuitEarly: (a: number, b: number) => number;
 export const setLogCallback: (a: any) => void;
-export const wasm_bindgen__convert__closures_____invoke__hc8336e0ca3973277: (a: number, b: number, c: any) => void;
-export const wasm_bindgen__closure__destroy__h425dac40a0834752: (a: number, b: number) => void;
 export const wasm_bindgen__convert__closures_____invoke__h15fcc68dda9f98b6: (a: number, b: number) => void;
 export const wasm_bindgen__closure__destroy__h03f628fb5c1af182: (a: number, b: number) => void;
+export const wasm_bindgen__convert__closures_____invoke__h099e459a18456efc: (a: number, b: number, c: any) => void;
+export const wasm_bindgen__closure__destroy__h0e079988b47e5986: (a: number, b: number) => void;
 export const wasm_bindgen__convert__closures_____invoke__h32d5e12558544916: (a: number, b: number, c: any) => void;
 export const wasm_bindgen__closure__destroy__hf76ded83d5f84246: (a: number, b: number) => void;
 export const wasm_bindgen__convert__closures_____invoke__hd0509b06bbeda2ff: (a: number, b: number, c: any, d: any) => void;
