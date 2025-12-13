@@ -110,7 +110,13 @@ pub struct CoarseDuration(coarsetime::Duration);
 /// We regard this as a bug.
 /// The intent is that all operations will saturate.
 #[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)] //
+#[cfg(not(target_arch = "wasm32"))]
 pub struct CoarseInstant(coarsetime::Instant);
+
+/// On WASM, use web_time::Instant since coarsetime doesn't support WASM
+#[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq, Hash)] //
+#[cfg(target_arch = "wasm32")]
+pub struct CoarseInstant(web_time::Instant);
 
 impl From<time::Duration> for CoarseDuration {
     fn from(td: time::Duration) -> CoarseDuration {
@@ -123,6 +129,7 @@ impl From<CoarseDuration> for time::Duration {
     }
 }
 /// implement `$AddSub<CoarseDuration> for CoarseInstant`, and `*Assign`
+#[cfg(not(target_arch = "wasm32"))]
 macro_rules! impl_add_sub { { $($AddSub:ident),* $(,)? } => { paste! { $(
     impl std::ops::$AddSub<CoarseDuration> for CoarseInstant {
         type Output = CoarseInstant;
@@ -137,7 +144,36 @@ macro_rules! impl_add_sub { { $($AddSub:ident),* $(,)? } => { paste! { $(
         }
     }
 )* } } }
+#[cfg(not(target_arch = "wasm32"))]
 impl_add_sub!(Add, Sub);
+
+// WASM implementation using web_time::Instant (which wraps std::time::Duration)
+#[cfg(target_arch = "wasm32")]
+impl std::ops::Add<CoarseDuration> for CoarseInstant {
+    type Output = CoarseInstant;
+    fn add(self, rhs: CoarseDuration) -> CoarseInstant {
+        CoarseInstant(self.0 + time::Duration::from(rhs))
+    }
+}
+#[cfg(target_arch = "wasm32")]
+impl std::ops::AddAssign<CoarseDuration> for CoarseInstant {
+    fn add_assign(&mut self, rhs: CoarseDuration) {
+        *self = *self + rhs;
+    }
+}
+#[cfg(target_arch = "wasm32")]
+impl std::ops::Sub<CoarseDuration> for CoarseInstant {
+    type Output = CoarseInstant;
+    fn sub(self, rhs: CoarseDuration) -> CoarseInstant {
+        CoarseInstant(self.0 - time::Duration::from(rhs))
+    }
+}
+#[cfg(target_arch = "wasm32")]
+impl std::ops::SubAssign<CoarseDuration> for CoarseInstant {
+    fn sub_assign(&mut self, rhs: CoarseDuration) {
+        *self = *self - rhs;
+    }
+}
 
 /// Provider of reduced-precision timestamps using the real OS clock
 ///
@@ -156,9 +192,17 @@ impl RealCoarseTimeProvider {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl CoarseTimeProvider for RealCoarseTimeProvider {
     fn now_coarse(&self) -> CoarseInstant {
         CoarseInstant(coarsetime::Instant::now())
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl CoarseTimeProvider for RealCoarseTimeProvider {
+    fn now_coarse(&self) -> CoarseInstant {
+        CoarseInstant(web_time::Instant::now())
     }
 }
 
