@@ -14,6 +14,7 @@ import { chromium, firefox } from 'playwright';
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { shouldSkipOptionalOutput } from './tls-utils.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(__dirname, '../..');
@@ -43,7 +44,7 @@ if (args.includes('--firefox')) {
 }
 
 // Test targets from demo presets (known Tor-friendly)
-// Tests marked as optional won't fail the suite if they timeout (external service issues)
+// Tests marked as optional won't fail the suite if they timeout or return 5xx (external service issues)
 const TLS_TEST_TARGETS = [
     {
         name: 'Tor Check',
@@ -274,7 +275,12 @@ async function testTlsConnection(page, target) {
         // Check result
         const output = await page.$eval('#output1', el => el.textContent);
         
-        if (output.includes('Error') || output.includes('failed')) {
+        if (target.optional && shouldSkipOptionalOutput(output)) {
+            testResult.status = 'skipped';
+            testResult.error = output.substring(0, 200);
+            log(`SKIPPED (5xx - external service): ${output.substring(0, 100)}`, 'warn');
+            results.skipped++;
+        } else if (output.includes('Error') || output.includes('failed')) {
             testResult.status = 'failed';
             testResult.error = output.substring(0, 200);
             log(`FAILED: ${output.substring(0, 100)}`, 'error');
@@ -296,8 +302,12 @@ async function testTlsConnection(page, target) {
         
     } catch (error) {
         testResult.error = error.message;
-        // For optional tests (external services), treat timeout as skipped not failed
-        if (target.optional && (error.message.includes('Timeout') || error.message.includes('timeout'))) {
+        // For optional tests (external services), treat timeouts and 5xx as skipped not failed
+        if (target.optional && shouldSkipOptionalOutput(error.message)) {
+            testResult.status = 'skipped';
+            log(`SKIPPED (5xx - external service): ${error.message}`, 'warn');
+            results.skipped++;
+        } else if (target.optional && (error.message.includes('Timeout') || error.message.includes('timeout'))) {
             testResult.status = 'skipped';
             log(`SKIPPED (timeout - external service): ${error.message}`, 'warn');
             results.skipped++;
